@@ -1,110 +1,86 @@
-# 🚀 Mask-Driven Cache Mapping Engine
+# 🧠 Cache Simulator Project
 
-> A **C++ cache simulator** that uses **mask-based hashing (bitwise AND + parity)** to map memory addresses to cache sets and analyze performance.
-
----
-
-## 📖 Overview
-
-Traditional cache indexing uses simple techniques like modulo or lower address bits, which often cause **conflict misses**.
-
-This project introduces a **mask-driven hashing approach**, where:
-- Multiple **bitmasks** are applied to an address  
-- Each result is reduced using **parity (XOR)**  
-- The resulting bits are combined to generate the **cache set index**
-
-This leads to **better distribution of addresses across cache sets**.
+A high-performance **Cache Simulator** built using **C++** to model memory access behavior and analyze cache performance under different configurations.
 
 ---
 
-## ✨ Key Features
+## 📌 Overview
 
-- ⚡ **Custom Hash Function** using bitmask + parity  
-- 🔁 Supports **Linear & Random Trace Generation**  
-- 🧠 **Set-Associative Cache Simulation**  
-- 🎯 **Random Replacement Policy**  
-- 📊 Tracks **Hit/Miss Rate, Utilization, Replacements**  
-- 📂 Fully **CSV-driven pipeline**
+This project simulates how cache memory works by processing memory access traces and applying different cache mapping and replacement strategies. It helps in understanding **cache hits, misses, and overall system efficiency**.
 
 ---
 
-## 🧠 Hashing Mechanism
+## ⚙️ Features
 
+* Customizable cache parameters:
 
-For each mask:
-bit_i = parity(address & mask[i])
+  * Cache Size
+  * Block Size
+  * Associativity
 
-Set Index = combine(bit_0, bit_1, ..., bit_k)
+* Supports cache mapping techniques:
 
+  * Direct Mapping
+  * Set-Associative Mapping
+  * Fully Associative Mapping
 
----
+* Trace file generation
 
-## 📁 Project Structure
+* Address mask generation
 
-
-.
-├── datafortrace.csv # Input configuration
-├── trace.csv # Generated addresses
-├── mask.csv # Generated masks
-├── stats.csv # Output statistics
-├── traceGenerator.cpp
-├── maskGenerator.cpp
-├── cacheSimulator.cpp
-└── README.md
-
+* Detailed performance metrics
 
 ---
 
-## ⚙️ Input Format
-
-### datafortrace.csv
-
-
-Linear/Random, Memory, Working Set, Cache Set, Cache Size, Mask Required, Ways
-0, 128 GB, 4 GB, 256, 32 KB, 8, 4
-
-
-| Column | Meaning |
-|------|--------|
-| Linear/Random | 0 = sequential, 1 = random |
-| Memory | Total memory size |
-| Working Set | Active memory region |
-| Cache Set | Number of sets |
-| Cache Size | Total cache size |
-| Mask Required | Number of masks |
-| Ways | Associativity |
-
----
-
-## 🔄 Workflow
-
-
-datafortrace.csv
-↓
-traceGenerator → trace.csv
-maskGenerator → mask.csv
-↓
-cacheSimulator
-↓
-stats.csv
-
-
----
-
-## 🛠️ How to Run
-
-### 1️⃣ Compile
+## 🏗️ Project Structure
 
 ```bash
-g++ traceGenerator.cpp -o traceGen
-g++ maskGenerator.cpp -o maskGen
-g++ cacheSimulator.cpp -o simulator
-2️⃣ Execute
+Cache-Simulator/
+│── trace_Generator.cpp      # Generates memory access traces
+│── mask_Generator.cpp       # Generates masks for tag/index/offset
+│── hashfunc.cpp             # Main simulation logic
+│── README.md                # Project documentation
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Compile the Code
+
+```bash
+g++ trace_Generator.cpp -o traceGen
+g++ mask_Generator.cpp -o maskGen
+g++ hashfunc.cpp -o simulator
+```
+
+---
+
+### 2️⃣ Run the Programs
+
+```bash
 ./traceGen
 ./maskGen
 ./simulator
-🧩 Core Implementation
-🔹 Hash Function
+```
+
+---
+
+## 🧩 Core Concepts
+
+### 🔸 Cache Address Breakdown
+
+Each memory address is divided into three parts:
+
+* **Tag** → Identifies the block
+* **Index** → Selects the cache line/set
+* **Offset** → Identifies data within the block
+
+---
+
+### 🔸 Hash Function (Parity Example)
+
+```cpp
 int parity(long long x) {
     int p = 0;
     while (x) {
@@ -113,70 +89,51 @@ int parity(long long x) {
     }
     return p;
 }
+```
 
-int getSet(long long address, vector<long long> &masks) {
-    int set = 0;
-    for (int i = 0; i < masks.size(); i++) {
-        int bit = parity(address & masks[i]);
-        set |= (bit << i);
-    }
-    return set;
-}
-🔹 Cache Access Logic
-long long block = address >> offset_bits;
-int set = getSet(address, masks) % sets;
+---
 
-bool found = false;
+## 📊 Output Metrics
 
-for (int w = 0; w < ways; w++) {
-    if (cache[set][w] == block) {
-        found = true;
-        hits++;
-        break;
-    }
-}
+The simulator provides:
 
-if (!found) {
-    misses++;
+* Total Memory Accesses
+* Cache Hits
+* Cache Misses
+* Hit Ratio
+* Miss Ratio
 
-    bool inserted = false;
+---
 
-    for (int w = 0; w < ways; w++) {
-        if (cache[set][w] == -1) {
-            cache[set][w] = block;
-            inserted = true;
-            break;
-        }
-    }
+## 📊 Sample Output
 
-    if (!inserted) {
-        int victim = rand() % ways;
-        cache[set][victim] = block;
-        replacements++;
-    }
-}
-📊 Output (stats.csv)
-Row,TotalAccess,Hits,Misses,HitRate,MissRate,Utilization(%),Replacements
-0,32768,25000,7768,0.76,0.24,85.5,1200
-📈 Metrics Tracked
-Total Accesses
-Cache Hits & Misses
-Hit Rate / Miss Rate
-Cache Utilization (%)
-Replacement Count
-Set-wise Access Frequency
-💡 Why This Project?
-Demonstrates low-level system design
-Applies bit manipulation & hashing
-Simulates real-world cache behavior
-Shows how custom indexing reduces conflicts
-🔮 Future Improvements
-Implement LRU / FIFO replacement policies
-Add graph visualization
-Compare with traditional indexing
-Improve mask generation strategies
-🧑‍💻 Tech Stack
-C++ (STL)
-File Handling (CSV)
-Bit Manipulation
-Hashing Techniques
+```text
+Total Accesses: 1000
+Cache Hits: 720
+Cache Misses: 280
+Hit Ratio: 72%
+Miss Ratio: 28%
+```
+
+---
+
+## 🛠️ Customization
+
+You can modify cache behavior by editing parameters in:
+
+```bash
+cacheSimulator.cpp
+```
+
+Options include:
+
+* Cache size
+* Block size
+* Associativity
+* Replacement policy
+
+---
+
+## 📄 License
+
+This project is open-source and available under the **MIT License**.
