@@ -1,0 +1,3 @@
+Row,TotalAccess,Hits,Misses,HitRate,MissRate,Utilization(%),Replacements
+1,32768,0,32768,0,1,100,31744
+2,32768,1004,31764,0.0306396,0.96936,100,30740
